@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ProcessScheduler
 {
@@ -15,9 +16,9 @@ namespace ProcessScheduler
 		{
 			this.ftr = new Queue<Process>();
 			this.readyQueues = new Queue<Process>[3];
-			foreach(Queue<Process> q in readyQueues)
+            for(int i = 0; i < 3; i++)
 			{
-				q = new Queue<Process>();
+				readyQueues[i] = new Queue<Process>();
 			}
 
 			this.disabled = new List<Process>();
@@ -51,10 +52,10 @@ namespace ProcessScheduler
 						}
 					}
 				});
-				if (suspended.Count > 0 && hasSpace(suspended.Peek().getSize())
+				if (suspended.Count > 0 && mp.hasSpace((suspended.Peek()).getSize()))
 				{
 					Process p = suspended.Dequeue();
-					mp.allocate(p.getId, p.getSize);
+					mp.allocate(p.getId(), p.getSize());
 					readyQueues[p.getPriority() - 1].Enqueue(p);
 					p.state = ProcessState.READY;
 				}

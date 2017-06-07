@@ -51,7 +51,7 @@ namespace ProcessScheduler
       int cdDrives
       )
     {
-      this.setId();
+      this.setId(id);
       this.setPriority(priority);
       this.setArrivalTime(arrivalTime);
       this.setMBytes(mBytes);
@@ -63,7 +63,7 @@ namespace ProcessScheduler
       this.resourceCount = printers + scanners 
         + modems + cdDrives;
       this.setSize(mBytes);
-      this.ProcessState state = ProcessState.NEW;
+      this.state = ProcessState.NEW;
     }
 
     /* ------GETTERS------ */
@@ -151,7 +151,7 @@ namespace ProcessScheduler
       this.arrivalTime = arrivalTime;
     }
 
-    private void setServiceTime(int serviceTime)
+    public void setServiceTime(int serviceTime)
     {
       if (serviceTime < 0)
       throw new NegativeTimeException();
@@ -163,7 +163,7 @@ namespace ProcessScheduler
     {
       if (mBytes < 0)
       throw new NegativeMemoryAllocationException();
-      if (mBytes > MEM_SIZE ||
+      if (mBytes > Program.MEM_SIZE ||
           this.priority == 0 && mBytes > 64)
       throw new MemoryAllocationOutOfBoundsException();
 
@@ -174,7 +174,7 @@ namespace ProcessScheduler
     {
       if (printers < 0)
       throw new NegativeResourceSolicitationException();
-      if (printers > PRINTERS)
+      if (printers > Program.PRINTERS)
       throw new ResourceSolicitationOutOfBoundsException(
         printers
         );
@@ -186,7 +186,7 @@ namespace ProcessScheduler
     {
       if (scanners < 0)
       throw new NegativeResourceSolicitationException();
-      if (scanners > SCANNERS)
+      if (scanners > Program.SCANNERS)
       throw new ResourceSolicitationOutOfBoundsException(
         scanners
         );
@@ -198,7 +198,7 @@ namespace ProcessScheduler
     {
       if (modems < 0)
       throw new NegativeResourceSolicitationException();
-      if (modems > MODEMS)
+      if (modems > Program.MODEMS)
       throw new ResourceSolicitationOutOfBoundsException(
         modems
         );
@@ -210,7 +210,7 @@ namespace ProcessScheduler
     {
       if (cdDrives < 0)
       throw new NegativeResourceSolicitationException();
-      if (cdDrives > CD_DRIVES)
+      if (cdDrives > Program.CD_DRIVES)
       throw new ResourceSolicitationOutOfBoundsException(
         cdDrives
         );
@@ -220,8 +220,7 @@ namespace ProcessScheduler
 
     private void setSize(int mBytes)
     {
-       this.size = (int)Math.Ceiling(mBytes / 32);
-
+       this.size = (int)Math.Ceiling((double)(mBytes/32));
     }
 
     public void updateResCount()

@@ -1,4 +1,3 @@
-using System.Collections;
 
 namespace ProcessScheduler
 {
@@ -8,18 +7,18 @@ namespace ProcessScheduler
 
     private int processId;
 
-    public void lock(int ownerId)
+    public void lockRes(int ownerId)
     {
       if (!this.locked)
       {
-        this.processId = requestId;
+        this.processId = ownerId;
         this.locked = true;
       }
     }
 
-    public void unlock(int ownerId)
+    public void unlockRes(int ownerId)
     {
-      if(this.processId == requestId)
+      if(this.processId == ownerId)
         this.locked = false;
     }
 

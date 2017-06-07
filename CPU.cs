@@ -10,7 +10,7 @@ namespace ProcessScheduler
 		{
 			this.quantum = 0;
 			this.exeProcess = null;
-			this.scheduler = scheduler;
+			this.scheduler = sch;
 		}
 
 		//Metodo que executa cada ciclo

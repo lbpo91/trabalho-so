@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ProcessScheduler
 {
@@ -28,7 +29,7 @@ namespace ProcessScheduler
 			{
 				if(blocks[i] != 0)
 				{
-					availables.add(i);
+					availables.Add(i);
 					if(availables.Count == processSize)
 					{
 						availables.ForEach(delegate(int e){
@@ -43,7 +44,7 @@ namespace ProcessScheduler
 
 		public void deallocate(int processId)
 		{
-			for(int i; i < 32; i++)
+			for(int i = 0; i < 32; i++)
 			{
 				if(blocks[i] == processId)
 				{

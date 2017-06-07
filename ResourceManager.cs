@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ProcessScheduler
 {
   class ResourceManager
@@ -21,19 +23,19 @@ namespace ProcessScheduler
       int cdDriveNum)
     {
       //Inicializa recursos
-      printers = new Resource[Main.PRINTERS];
+      printers = new Resource[Program.PRINTERS];
       for (int i = 0; i < printers.Length; i++)
         printers[i] = new Resource();
 
-      scanners = new Resource[Main.SCANNERS];
+      scanners = new Resource[Program.SCANNERS];
       for (int i = 0; i < scanners.Length; i++)
         scanners[i] = new Resource();
 
-      modems = new Resource[Main.MODEMS];
+      modems = new Resource[Program.MODEMS];
       for (int i = 0; i < modems.Length; i++)
         modems[i] = new Resource();
 
-      cdDrives = new Resource[Main.CD_DRIVES];
+      cdDrives = new Resource[Program.CD_DRIVES];
       for (int i = 0; i < cdDrives.Length; i++)
         cdDrives[i] = new Resource();
 
@@ -63,7 +65,7 @@ namespace ProcessScheduler
         if (!res[i].isLocked())
         {
           Process p = waiting.Dequeue();
-          res[i].lock(p.getId());
+          res[i].lockRes(p.getId());
           p.updateResCount();
         }
         i++;
@@ -74,34 +76,34 @@ namespace ProcessScheduler
     public void unlockResources(int processId)
     {
       for (int i = 0; i < printers.Length; i++)
-        printers[i].unlock(processId);
+        printers[i].unlockRes(processId);
 
       for (int i = 0; i < scanners.Length; i++)
-        scanners[i] = unlock(processId);
+        scanners[i].unlockRes(processId);
 
       for (int i = 0; i < modems.Length; i++)
-        modems[i] = unlock(processId);
+        modems[i].unlockRes(processId);
 
       for (int i = 0; i < cdDrives.Length; i++)
-        cdDrives[i] = unlock(processId);
+        cdDrives[i].unlockRes(processId);
     }
 
     //Coloca processo na fila de recursos
-    public void requestResources(int processId, 
+    public void requestResources(Process process, 
       int reqPrinters, int reqScanners, int reqModems, 
       int reqCdDrives)
     {
       for (int i = 0; i < reqPrinters; i++)
-        waitingPrinter.Enqueue(processId);
+        waitingPrinter.Enqueue(process);
 
       for (int i = 0; i < reqScanners; i++)
-        waitingScanner.Enqueue(processId);
+        waitingScanner.Enqueue(process);
 
       for (int i = 0; i < reqModems; i++)
-        waitingModem.Enqueue(processId);
+        waitingModem.Enqueue(process);
 
       for (int i = 0; i < reqCdDrives; i++)
-        waitingCdDrive.Enqueue(processId);
+        waitingCdDrive.Enqueue(process);
     }
   }
 }
