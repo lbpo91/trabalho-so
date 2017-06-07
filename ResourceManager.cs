@@ -9,13 +9,10 @@ namespace ProcessScheduler
     private Resource[] cdDrives;
 
     //Filas para cada recurso
-    private Queue<int> waitingPrinter;
-    private Queue<int> waitingScanner;
-    private Queue<int> waitingModem;
-    private Queue<int> waitingCdDrive;
-
-    //Memoria
-    private int[] memoryBlocks;
+    private Queue<Process> waitingPrinter;
+    private Queue<Process> waitingScanner;
+    private Queue<Process> waitingModem;
+    private Queue<Process> waitingCdDrive;
 
     public ResourceManager(
       int printerNum,
@@ -41,13 +38,10 @@ namespace ProcessScheduler
         cdDrives[i] = new Resource();
 
       // Inicializa filas para recursos
-      waitingPrinter = new Queue<int>();
-      waitingScanner = new Queue<int>();
-      waitingModem = new Queue<int>();
-      waitingCdDrive = new Queue<int>();
-
-      //Memoria
-      memoryBlocks = new int[32];
+      waitingPrinter = new Queue<Process>();
+      waitingScanner = new Queue<Process>();
+      waitingModem = new Queue<Process>();
+      waitingCdDrive = new Queue<Process>();
     }
 
     // Metodo que roda todo ciclo checando recursos livres
@@ -61,15 +55,16 @@ namespace ProcessScheduler
     }
 
     private void checkQueue(Resource[] res, 
-      Queue<int> waiting)
+      Queue<Process> waiting)
     {
       int i = 0;
       while (waiting.Count > 0 && i < res.Length)
       {
         if (!res[i].isLocked())
         {
-          int processId = waiting.Dequeue();
-          res[i].lock(processId);
+          Process p = waiting.Dequeue();
+          res[i].lock(p.getId());
+          p.updateResCount();
         }
         i++;
       }

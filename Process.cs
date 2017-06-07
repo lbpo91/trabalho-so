@@ -1,18 +1,19 @@
-#define PRINTERS Main.PRINTERS
-#define SCANNERS Main.SCANNERS
-#define MODEMS Main.MODEMS
-#define CD_DRIVES Main.CD_DRIVES
-#define MEM_SIZE Main.MEM_SIZE
-
 using System;
 
 namespace ProcessScheduler
 {
+  public enum ProcessState
+  {
+    NEW,
+    READY,
+    EXECUTING,
+    DISABLED,
+    SUSPENDED,
+    FINISHED
+  }
+
   class Process
   {
-    // Number of processes created in runtime
-    private static processNumber;
-
     // Process identifier
     private int id;
     // Process priority (0 is highest priority)
@@ -32,19 +33,22 @@ namespace ProcessScheduler
     // Amount of CD drives requested
     private int cdDrives;
 
+    //Variaveis de controle interno(fora do enunciado)
     private int resourceCount;
+    private int size;
 
-    private ProcessState state = ProcessState.NEW;
+    public ProcessState state;
 
     public Process (
-      priority,
-      arrivalTime,
-      serviceTime,
-      mBytes,
-      printers,
-      scanners,
-      modems,
-      cdDrives
+      int id,
+      int priority,
+      int arrivalTime,
+      int serviceTime,
+      int mBytes,
+      int printers,
+      int scanners,
+      int modems,
+      int cdDrives
       )
     {
       this.setId();
@@ -58,6 +62,8 @@ namespace ProcessScheduler
       this.setServiceTime(serviceTime);
       this.resourceCount = printers + scanners 
         + modems + cdDrives;
+      this.setSize(mBytes);
+      this.ProcessState state = ProcessState.NEW;
     }
 
     /* ------GETTERS------ */
@@ -117,11 +123,16 @@ namespace ProcessScheduler
       return this.resourceCount;
     }
 
+    public int getSize()
+    {
+      return this.size;
+    }
+
     /* ------SETTERS------ */
 
-    private void setId()
+    private void setId(int id)
     {
-      this.id = processNumber++;
+      this.id = id;
     }
 
     public void setPriority(int priority)
@@ -207,20 +218,15 @@ namespace ProcessScheduler
       this.cdDrives = cdDrives;
     }
 
-    private void updateResCount()
+    private void setSize(int mBytes)
+    {
+       this.size = (int)Math.Ceiling(mBytes / 32);
+
+    }
+
+    public void updateResCount()
     {
       this.resourceCount--;
     }
   }
-}
-
-public enum ProcessState
-{
-  NEW,
-  READY,
-  EXECUTING,
-  BLOCKED,
-  READY-SUSPENDED,
-  BLOCKED-SUSPENDED,
-  FINISHED
 }

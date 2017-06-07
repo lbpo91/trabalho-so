@@ -4,17 +4,13 @@ namespace ProcessScheduler
 	{
 		private int quantum;
 		private Process exeProcess;
-		private bool userMode;
-		private SchRealTime schRealTime;
-		private SchFeedback schFeedback;
+		private Scheduler scheduler;
 
-		public CPU(SchRealTime schR, SchFeedback schF)
+		public CPU(Scheduler sch)
 		{
-			quantum = 0;
-			exeProcess = null;
-			schRealTime = schR;
-			schFeedback = schF;
-			userMode = false;
+			this.quantum = 0;
+			this.exeProcess = null;
+			this.scheduler = scheduler;
 		}
 
 		//Metodo que executa cada ciclo
@@ -23,25 +19,20 @@ namespace ProcessScheduler
 			if (quantum > 0)
 			{
 				quantum--;
-				exeProcess.run();
+				exeProcess.setServiceTime(exeProcess.getServiceTime() - 1);
 				if (quantum == 0)
 				{
-					if(!userMode)
-						schRealTime.schedule(this, exeProcess);
-					else
-						schFeedback.schedule(this, exeProcess);
+					scheduler.schedule(this, exeProcess);
 				}
 			}
 			else
-				//Avisa que esta ocioso
+				scheduler.schedule(this);
 		}
 
-		public void allocateProcess(Process p, 
-			int q, bool userMode)
+		public void allocateProcess(Process p, int q)
 		{
 			exeProcess = p;
 			quantum = q;
-			this.userMode = userMode;
 		}
 	}
 }

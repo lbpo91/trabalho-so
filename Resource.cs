@@ -8,22 +8,18 @@ namespace ProcessScheduler
 
     private int processId;
 
-    public int lock(int ownerId)
+    public void lock(int ownerId)
     {
-      if (this.locked)
-        return 0;
-      else {
+      if (!this.locked)
+      {
         this.processId = requestId;
         this.locked = true;
-        return 1;
       }
     }
 
-    public int unlock(int ownerId)
+    public void unlock(int ownerId)
     {
-      if(this.processId != requestId)
-        return 0;
-      else
+      if(this.processId == requestId)
         this.locked = false;
     }
 
