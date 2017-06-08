@@ -16,11 +16,7 @@ namespace ProcessScheduler
     private Queue<Process> waitingModem;
     private Queue<Process> waitingCdDrive;
 
-    public ResourceManager(
-      int printerNum,
-      int scannerNum,
-      int modemNum,
-      int cdDriveNum)
+    public ResourceManager()
     {
       //Inicializa recursos
       printers = new Resource[Program.PRINTERS];
@@ -89,21 +85,20 @@ namespace ProcessScheduler
     }
 
     //Coloca processo na fila de recursos
-    public void requestResources(Process process, 
-      int reqPrinters, int reqScanners, int reqModems, 
-      int reqCdDrives)
+    public void requestResources(Process process)
     {
-      for (int i = 0; i < reqPrinters; i++)
+      for (int i = 0; i < process.getPrinters(); i++)
         waitingPrinter.Enqueue(process);
 
-      for (int i = 0; i < reqScanners; i++)
+      for (int i = 0; i < process.getScanners(); i++)
         waitingScanner.Enqueue(process);
 
-      for (int i = 0; i < reqModems; i++)
+      for (int i = 0; i < process.getModems(); i++)
         waitingModem.Enqueue(process);
 
-      for (int i = 0; i < reqCdDrives; i++)
+      for (int i = 0; i < process.getCDDrives(); i++)
         waitingCdDrive.Enqueue(process);
+        
     }
   }
 }

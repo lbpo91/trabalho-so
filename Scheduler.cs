@@ -9,6 +9,8 @@ namespace ProcessScheduler
 		private Queue<Process>[] readyQueues;
 		private List<Process> disabled;
 		private Queue<Process> suspended;
+		private Queue<Process> ftrSuspended;
+		private CPU[] arrayCPU;
 		private ResourceManager resMngr;
 		private MP mp;
 
@@ -20,9 +22,14 @@ namespace ProcessScheduler
 			{
 				readyQueues[i] = new Queue<Process>();
 			}
-
-			this.disabled = new List<Process>();
-			this.suspended = new Queue<Process>();
+            this.disabled = new List<Process>();
+            this.suspended = new Queue<Process>();
+            this.ftrSuspended = new Queue<Process>();
+            this.arrayCPU = new CPU[4];
+            for(int i = 0; i < 4; i++)
+            {
+                arrayCPU[i] = new CPU(this);
+            }
 			this.resMngr = rm;
 			this.mp = mem;
 		}
@@ -30,53 +37,124 @@ namespace ProcessScheduler
 		//
 		public void run()
 		{
-			if(ftr.Count == 0)
+			//Verifica se processos impossibilitados já podem ficar prontos
+			for(int i = disabled.Count - 1; i >= 0; i--)
 			{
-				disabled.ForEach(delegate(Process p){
-					//ResourceCount será 0 qnd o processo 
-					//tiver todos os seus recursos reservados
-					if(p.getResourceCount() == 0)
-					{
-						disabled.Remove(p);
+				Process p = disabled[i];
 
-						if(mp.hasSpace(p.getSize()))//tem memória
-						{
-							mp.allocate(p.getId(), p.getSize());
-							readyQueues[p.getPriority() - 1].Enqueue(p);
-							p.state = ProcessState.READY;
-						}
-						else //não tem memória
-						{
-							suspended.Enqueue(p);
-							p.state = ProcessState.SUSPENDED;
-						}
+				//ResourceCount será 0 qnd o processo 
+				//tiver todos os seus recursos reservados
+				if(p.getResourceCount() == 0)
+				{
+					if(mp.allocate(p))//tem memória
+					{
+						readyQueues[p.getPriority() - 1].Enqueue(p);
+						p.state = ProcessState.READY;
 					}
-				});
-				if (suspended.Count > 0 && mp.hasSpace((suspended.Peek()).getSize()))
+					else //não tem memória
+					{
+						suspended.Enqueue(p);
+						p.state = ProcessState.SUSPENDED;
+					}
+					
+					Dispatcher.displayNewProcessInfo(p);
+
+					disabled.RemoveAt(i);
+				}
+			}
+
+			while(ftrSuspended.Count > 0 && mp.allocate(ftrSuspended.Peek()))
+			{
+				scheduleFTR(ftrSuspended.Dequeue());
+			}
+
+			if(ftrSuspended.Count == 0){
+				while(suspended.Count > 0 && mp.allocate(suspended.Peek()))
 				{
 					Process p = suspended.Dequeue();
-					mp.allocate(p.getId(), p.getSize());
 					readyQueues[p.getPriority() - 1].Enqueue(p);
 					p.state = ProcessState.READY;
 				}
 			}
-			
 		}
 
-		public void schedule(CPU cpu, Process process)
+		//Schedule para FTR que não se encontra na MP
+		public void scheduleFTR(Process p)
+		{
+			if(mp.allocate(p))
+			{
+				bool noCPUfound = true;
+				int i = 0;
+				//percorre cpus que tem processo de usuario
+				while(noCPUfound && i < 4)
+				{
+					if(arrayCPU[i].isOnUserMode())
+					{
+						Process prevProcess = arrayCPU[i].getExeProcess();
+						readyQueues[prevProcess.getPriority() - 1].Enqueue(prevProcess);
+						prevProcess.state = ProcessState.READY;
+
+						arrayCPU[i].allocateProcess(p, p.getServiceTime(), false);
+						p.state = ProcessState.EXECUTING;
+
+						noCPUfound = false;
+						i++;
+					}
+				}
+
+				if(noCPUfound)
+				{
+					ftr.Enqueue(p);
+					p.state = ProcessState.READY;
+				}
+			}
+			else
+			{
+				ftrSuspended.Enqueue(p);
+				p.state = ProcessState.SUSPENDED;
+			}
+
+		}
+
+		//Schedule para user process que não se encontra na MP
+		public void schNewUserProcess(Process p)
+		{
+			if(mp.allocate(p))
+			{
+				readyQueues[p.getPriority() - 1].Enqueue(p);
+				p.state = ProcessState.READY;
+			}
+			else
+			{
+				suspended.Enqueue(p);
+				p.state = ProcessState.SUSPENDED;
+			}
+		}
+
+		public void schedule(CPU cpu, Process process, bool userMode)
 		{
 			if(process.getServiceTime() == 0)
 			{
-				if(process.getPriority() != 0)
+				if(userMode)
 				{
 					//unlock resources
 					resMngr.unlockResources(process.getId());
 				}
 				//Deallocate memory
-				mp.deallocate(process.getId());
+				mp.deallocate(process);
 				//change state to finished
 				process.state = ProcessState.FINISHED;	
 			}
+			else
+			{
+				int newPriority = process.getPriority() + 1;
+				if (newPriority > 3)
+					newPriority = 1;
+
+				process.setPriority(newPriority);
+				process.state = ProcessState.READY;
+			}
+
 			schedule(cpu);
 		}
 
@@ -85,7 +163,7 @@ namespace ProcessScheduler
 			if(ftr.Count > 0)
 			{
 				Process p = ftr.Dequeue();
-				cpu.allocateProcess(p, p.getServiceTime());
+				cpu.allocateProcess(p, p.getServiceTime(), false);
 				p.state = ProcessState.EXECUTING;
 			}
 			else
@@ -95,7 +173,7 @@ namespace ProcessScheduler
 					if (readyQueues[i].Count > 0)
 					{
 						Process p = readyQueues[i].Dequeue();
-						cpu.allocateProcess(p, 2*(i+1));
+						cpu.allocateProcess(p, 2*(i+1), true);
 						p.state = ProcessState.EXECUTING;
 						break;
 					}

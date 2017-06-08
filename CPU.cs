@@ -5,12 +5,24 @@ namespace ProcessScheduler
 		private int quantum;
 		private Process exeProcess;
 		private Scheduler scheduler;
+		private bool userMode;
 
 		public CPU(Scheduler sch)
 		{
 			this.quantum = 0;
 			this.exeProcess = null;
 			this.scheduler = sch;
+			this.userMode = false;
+		}
+
+		public bool isOnUserMode()
+		{
+			return userMode;
+		}
+
+		public Process getExeProcess()
+		{
+			return exeProcess;
 		}
 
 		//Metodo que executa cada ciclo
@@ -22,17 +34,19 @@ namespace ProcessScheduler
 				exeProcess.setServiceTime(exeProcess.getServiceTime() - 1);
 				if (quantum == 0)
 				{
-					scheduler.schedule(this, exeProcess);
+					scheduler.schedule(this, exeProcess, userMode);
+					userMode = false;
 				}
 			}
 			else
 				scheduler.schedule(this);
 		}
 
-		public void allocateProcess(Process p, int q)
+		public void allocateProcess(Process p, int q, bool mode)
 		{
-			exeProcess = p;
-			quantum = q;
+			this.exeProcess = p;
+			this.quantum = q;
+			this.userMode = mode;
 		}
 	}
 }

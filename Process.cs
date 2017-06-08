@@ -41,8 +41,8 @@ namespace ProcessScheduler
 
     public Process (
       int id,
-      int priority,
       int arrivalTime,
+      int priority,
       int serviceTime,
       int mBytes,
       int printers,
@@ -138,7 +138,7 @@ namespace ProcessScheduler
     public void setPriority(int priority)
     {
       if (priority < 0 || priority > 3)
-      throw new PriorityOutOfBoundsExceptions(priority);
+      //throw new PriorityOutOfBoundsExceptions(priority);
 
       this.priority = priority;
     }
@@ -146,7 +146,7 @@ namespace ProcessScheduler
     private void setArrivalTime(int arrivalTime)
     {
       if (arrivalTime < 0)
-      throw new NegativeTimeException();
+      //throw new NegativeTimeException();
 
       this.arrivalTime = arrivalTime;
     }
@@ -154,7 +154,7 @@ namespace ProcessScheduler
     public void setServiceTime(int serviceTime)
     {
       if (serviceTime < 0)
-      throw new NegativeTimeException();
+      //throw new NegativeTimeException();
 
       this.serviceTime = serviceTime;
     }
@@ -162,10 +162,10 @@ namespace ProcessScheduler
     private void setMBytes(int mBytes)
     {
       if (mBytes < 0)
-      throw new NegativeMemoryAllocationException();
+      //throw new NegativeMemoryAllocationException();
       if (mBytes > Program.MEM_SIZE ||
           this.priority == 0 && mBytes > 64)
-      throw new MemoryAllocationOutOfBoundsException();
+      //throw new MemoryAllocationOutOfBoundsException();
 
       this.mBytes = mBytes;
     }
@@ -173,11 +173,9 @@ namespace ProcessScheduler
     private void setPrinters(int printers)
     {
       if (printers < 0)
-      throw new NegativeResourceSolicitationException();
+      //throw new NegativeResourceSolicitationException();
       if (printers > Program.PRINTERS)
-      throw new ResourceSolicitationOutOfBoundsException(
-        printers
-        );
+      //throw new ResourceSolicitationOutOfBoundsException(printers);
 
       this.printers = printers;
     }
@@ -185,11 +183,9 @@ namespace ProcessScheduler
     private void setScanners(int scanners)
     {
       if (scanners < 0)
-      throw new NegativeResourceSolicitationException();
+      //throw new NegativeResourceSolicitationException();
       if (scanners > Program.SCANNERS)
-      throw new ResourceSolicitationOutOfBoundsException(
-        scanners
-        );
+      //throw new ResourceSolicitationOutOfBoundsException(scanners);
 
       this.scanners = scanners;
     }
@@ -197,11 +193,9 @@ namespace ProcessScheduler
     private void setModems(int modems)
     {
       if (modems < 0)
-      throw new NegativeResourceSolicitationException();
+      //throw new NegativeResourceSolicitationException();
       if (modems > Program.MODEMS)
-      throw new ResourceSolicitationOutOfBoundsException(
-        modems
-        );
+      //throw new ResourceSolicitationOutOfBoundsException(modems);
 
       this.modems = modems;
     }
@@ -209,11 +203,9 @@ namespace ProcessScheduler
     private void setCDDrives(int cdDrives)
     {
       if (cdDrives < 0)
-      throw new NegativeResourceSolicitationException();
+      //throw new NegativeResourceSolicitationException();
       if (cdDrives > Program.CD_DRIVES)
-      throw new ResourceSolicitationOutOfBoundsException(
-        cdDrives
-        );
+      //throw new ResourceSolicitationOutOfBoundsException(cdDrives);
 
       this.cdDrives = cdDrives;
     }
