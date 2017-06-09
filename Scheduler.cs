@@ -10,7 +10,8 @@ namespace ProcessScheduler
 		private List<Process> disabled;
 		private Queue<Process> suspended;
 		private Queue<Process> ftrSuspended;
-		private CPU[] arrayCPU;
+        private List<Process> finished;
+        private CPU[] arrayCPU;
 		private ResourceManager resMngr;
 		private MP mp;
 
@@ -26,6 +27,7 @@ namespace ProcessScheduler
             this.suspended = new Queue<Process>();
             this.ftrSuspended = new Queue<Process>();
             this.arrayCPU = new CPU[4];
+            this.finished = new List<Process>();
             for(int i = 0; i < 4; i++)
             {
                 arrayCPU[i] = new CPU(this);
@@ -34,10 +36,26 @@ namespace ProcessScheduler
 			this.mp = mem;
 		}
 
+        public void display()
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                Console.WriteLine("CPU {0} info:", i + 1);
+                arrayCPU[i].display();
+                Console.WriteLine();
+            }
+        }
+
+        public void disableProcess(Process p)
+        {
+            this.disabled.Add(p);
+        }
+
 		//
 		public void run()
 		{
-			//Verifica se processos impossibilitados já podem ficar prontos
+            //Verifica se processos impossibilitados já podem ficar prontos
+            disabled.Reverse();
 			for(int i = disabled.Count - 1; i >= 0; i--)
 			{
 				Process p = disabled[i];
@@ -50,20 +68,26 @@ namespace ProcessScheduler
 					{
 						readyQueues[p.getPriority() - 1].Enqueue(p);
 						p.state = ProcessState.READY;
+                        Dispatcher.notifyChangeState(p.getId(), ProcessState.DISABLED, ProcessState.READY);
 					}
 					else //não tem memória
 					{
 						suspended.Enqueue(p);
 						p.state = ProcessState.SUSPENDED;
+                        Dispatcher.notifyChangeState(p.getId(), ProcessState.DISABLED, ProcessState.SUSPENDED);
 					}
-					
-					Dispatcher.displayNewProcessInfo(p);
 
 					disabled.RemoveAt(i);
 				}
 			}
+            disabled.Reverse();
 
-			while(ftrSuspended.Count > 0 && mp.allocate(ftrSuspended.Peek()))
+            foreach (CPU cpu in arrayCPU)
+            {
+                cpu.run();
+            }
+
+            while (ftrSuspended.Count > 0 && mp.allocate(ftrSuspended.Peek()))
 			{
 				scheduleFTR(ftrSuspended.Dequeue());
 			}
@@ -74,6 +98,7 @@ namespace ProcessScheduler
 					Process p = suspended.Dequeue();
 					readyQueues[p.getPriority() - 1].Enqueue(p);
 					p.state = ProcessState.READY;
+                    Dispatcher.notifyChangeState(p.getId(), ProcessState.SUSPENDED, ProcessState.READY);
 				}
 			}
 		}
@@ -91,11 +116,17 @@ namespace ProcessScheduler
 					if(arrayCPU[i].isOnUserMode())
 					{
 						Process prevProcess = arrayCPU[i].getExeProcess();
-						readyQueues[prevProcess.getPriority() - 1].Enqueue(prevProcess);
-						prevProcess.state = ProcessState.READY;
+                        if(prevProcess != null)
+                        {
+                            readyQueues[prevProcess.getPriority() - 1].Enqueue(prevProcess);
+                            prevProcess.state = ProcessState.READY;
+                            Dispatcher.notifyChangeState(prevProcess.getId(), ProcessState.EXECUTING, ProcessState.READY);
+                        }
 
 						arrayCPU[i].allocateProcess(p, p.getServiceTime(), false);
-						p.state = ProcessState.EXECUTING;
+                        Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.EXECUTING);
+                        p.state = ProcessState.EXECUTING;
+
 
 						noCPUfound = false;
 						i++;
@@ -105,13 +136,15 @@ namespace ProcessScheduler
 				if(noCPUfound)
 				{
 					ftr.Enqueue(p);
-					p.state = ProcessState.READY;
+                    Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.READY);
+                    p.state = ProcessState.READY;
 				}
 			}
 			else
 			{
 				ftrSuspended.Enqueue(p);
-				p.state = ProcessState.SUSPENDED;
+                Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.SUSPENDED);
+                p.state = ProcessState.SUSPENDED;
 			}
 
 		}
@@ -122,12 +155,14 @@ namespace ProcessScheduler
 			if(mp.allocate(p))
 			{
 				readyQueues[p.getPriority() - 1].Enqueue(p);
-				p.state = ProcessState.READY;
+                Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.READY);
+                p.state = ProcessState.READY;
 			}
 			else
 			{
 				suspended.Enqueue(p);
-				p.state = ProcessState.SUSPENDED;
+                Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.SUSPENDED);
+                p.state = ProcessState.SUSPENDED;
 			}
 		}
 
@@ -142,8 +177,10 @@ namespace ProcessScheduler
 				}
 				//Deallocate memory
 				mp.deallocate(process);
-				//change state to finished
-				process.state = ProcessState.FINISHED;	
+                //change state to finished
+                finished.Add(process);
+                Dispatcher.notifyChangeState(process.getId(), process.getState(), ProcessState.FINISHED);
+                process.state = ProcessState.FINISHED;	
 			}
 			else
 			{
@@ -152,7 +189,8 @@ namespace ProcessScheduler
 					newPriority = 1;
 
 				process.setPriority(newPriority);
-				process.state = ProcessState.READY;
+                Dispatcher.notifyChangeState(process.getId(), process.getState(), ProcessState.READY);
+                process.state = ProcessState.READY;
 			}
 
 			schedule(cpu);
@@ -164,7 +202,8 @@ namespace ProcessScheduler
 			{
 				Process p = ftr.Dequeue();
 				cpu.allocateProcess(p, p.getServiceTime(), false);
-				p.state = ProcessState.EXECUTING;
+                Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.EXECUTING);
+                p.state = ProcessState.EXECUTING;
 			}
 			else
 			{
@@ -174,10 +213,13 @@ namespace ProcessScheduler
 					{
 						Process p = readyQueues[i].Dequeue();
 						cpu.allocateProcess(p, 2*(i+1), true);
-						p.state = ProcessState.EXECUTING;
-						break;
+                        Dispatcher.notifyChangeState(p.getId(), p.getState(), ProcessState.EXECUTING);
+                        p.state = ProcessState.EXECUTING;
+						return;
 					}
-				}	
+				}
+
+                cpu.allocateProcess(null, 0, true);	
 			}
 		}
 	}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ProcessScheduler
@@ -41,6 +42,36 @@ namespace ProcessScheduler
       waitingModem = new Queue<Process>();
       waitingCdDrive = new Queue<Process>();
     }
+        public void display()
+        {
+            for (int i = 0; i < printers.Length; i++)
+            {
+                Console.WriteLine("Printer {0} info:", i + 1);
+                printers[i].display();
+                Console.WriteLine();
+            }
+
+            for (int i = 0; i < scanners.Length; i++)
+            {
+                Console.WriteLine("Scanner {0} info:", i + 1);
+                scanners[i].display();
+                Console.WriteLine();
+            }
+
+            for (int i = 0; i < modems.Length; i++)
+            {
+                Console.WriteLine("Modem {0} info:", i + 1);
+                modems[i].display();
+                Console.WriteLine();
+            }
+
+            for (int i = 0; i < cdDrives.Length; i++)
+            {
+                Console.WriteLine("CD drive {0} info:", i + 1);
+                cdDrives[i].display();
+                Console.WriteLine();
+            }
+        }
 
     // Metodo que roda todo ciclo checando recursos livres
     public void run()

@@ -7,7 +7,6 @@ namespace ProcessScheduler
 	{
 		private List<Process> notArrived;
 		private Queue<Process> newlyArrived;
-		private List<Process> finished;
 		private Scheduler scheduler;
 		private ResourceManager resMngr;
 
@@ -15,7 +14,6 @@ namespace ProcessScheduler
 		{
 			this.notArrived = new List<Process>();
 			this.newlyArrived = new Queue<Process>();
-			this.finished = new List<Process>();
 			this.scheduler = sch;
 			this.resMngr = rm;
 
@@ -77,6 +75,7 @@ namespace ProcessScheduler
                     Int32.Parse(str[5]), Int32.Parse(str[6]), Int32.Parse(str[7]));
 
 				notArrived.Add(p);
+                id++;
 			}
 
 			notArrived.Sort(CompareArrivalTime);
@@ -88,10 +87,12 @@ namespace ProcessScheduler
 			{
 				newlyArrived.Enqueue(notArrived[0]);
 				notArrived[0].state = ProcessState.NEW;
-				notArrived.RemoveAt(0);
 
-				//Escreve dados do processo entrando no so
-			}
+                //Escreve dados do processo entrando no so
+                displayNewProcessInfo(notArrived[0]);
+
+                notArrived.RemoveAt(0);
+            }
 
 			while(newlyArrived.Count > 0)
 			{
@@ -108,6 +109,7 @@ namespace ProcessScheduler
 					if(p.getResourceCount() > 0)
 					{
 						resMngr.requestResources(p);
+                        scheduler.disableProcess(p);
 						p.state = ProcessState.DISABLED;
 						notifyChangeState(p.getId(), ProcessState.NEW, ProcessState.DISABLED);
 					}
@@ -122,11 +124,21 @@ namespace ProcessScheduler
 		public static void notifyChangeState(int id, ProcessState prev, ProcessState curr)
 		{
 			Console.WriteLine("Process with Id# {0}  changed state: {1} -> {2}", id, prev, curr);
-		}
+            Console.WriteLine();
+        }
 
-		public static void displayNewProcessInfo(Process p)
+		private void displayNewProcessInfo(Process p)
 		{
-
-		}
+            Console.WriteLine("New process information: ");
+            Console.WriteLine("          Id: {0}", p.getId());
+            Console.WriteLine("    Priority: {0}", p.getPriority());
+            Console.WriteLine("Service Time: {0}", p.getServiceTime());
+            Console.WriteLine("      Mbytes: {0}", p.getMBytes());
+            Console.WriteLine("   #Printers: {0}", p.getPrinters());
+            Console.WriteLine("   #Scanners: {0}", p.getScanners());
+            Console.WriteLine("     #Modems: {0}", p.getModems());
+            Console.WriteLine("        #CDs: {0}", p.getCDDrives());
+            Console.WriteLine();
+        }
 	}
 }

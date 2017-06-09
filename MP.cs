@@ -16,6 +16,17 @@ namespace ProcessScheduler
 			this.userProcessesOnMP = new List<Process>();
 		}
 
+        public void display()
+        {
+            Console.WriteLine("MP allocation status: ");
+            foreach(int b in blocks)
+            {
+                Console.Write("[{0}]", b);
+            }
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+
 		public bool hasSpace(int processSize)
 		{
 
@@ -92,6 +103,7 @@ namespace ProcessScheduler
 			for(int i = 0; i < candidates.Length; i++)
 			{
 				deallocate(candidates[i]);
+                Dispatcher.notifyChangeState(candidates[i].getId(), candidates[i].getState(), ProcessState.SUSPENDED);
 				candidates[i].state = ProcessState.SUSPENDED;
 			}
 
@@ -119,7 +131,7 @@ namespace ProcessScheduler
 			List<int> availables = new List<int>();
 			for(int i = 0; i < 32; i++)
 			{
-				if(blocks[i] != 0)
+				if(blocks[i] == 0)
 				{
 					availables.Add(i);
 					if(availables.Count == processSize)
@@ -140,12 +152,16 @@ namespace ProcessScheduler
 
 		public void deallocate(Process p)
 		{
+            int count = 0;
 			for(int i = 0; i < 32; i++)
 			{
 				if(blocks[i] == p.getId())
 				{
 					blocks[i] = 0;
 					emptyBlocks++;
+                    count++;
+                    if (count == p.getSize())
+                        break;
 				}
 			}
 			if(p.getPriority() != 0)

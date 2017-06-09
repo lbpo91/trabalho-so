@@ -1,3 +1,5 @@
+using System;
+
 namespace ProcessScheduler
 {
 	class CPU
@@ -12,8 +14,20 @@ namespace ProcessScheduler
 			this.quantum = 0;
 			this.exeProcess = null;
 			this.scheduler = sch;
-			this.userMode = false;
+			this.userMode = true;
 		}
+
+        public void display()
+        {
+            if(exeProcess != null)
+                Console.WriteLine("Executing process with #Id {0}: ", exeProcess.getId());
+            else
+                Console.WriteLine("No process executing.");
+            if(userMode)
+                Console.WriteLine("FLAG userMode is on.");
+            else
+                Console.WriteLine("FLAG userMode is off.");
+        }
 
 		public bool isOnUserMode()
 		{
@@ -31,11 +45,11 @@ namespace ProcessScheduler
 			if (quantum > 0)
 			{
 				quantum--;
-				exeProcess.setServiceTime(exeProcess.getServiceTime() - 1);
-				if (quantum == 0)
+                int remainingTime = exeProcess.getServiceTime() - 1;
+                exeProcess.setServiceTime(remainingTime);
+				if (quantum == 0 || remainingTime == 0)
 				{
 					scheduler.schedule(this, exeProcess, userMode);
-					userMode = false;
 				}
 			}
 			else

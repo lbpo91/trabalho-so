@@ -1,3 +1,4 @@
+using System;
 
 namespace ProcessScheduler
 {
@@ -6,6 +7,14 @@ namespace ProcessScheduler
     private bool locked = false;
 
     private int processId;
+
+        public void display()
+        {
+            if (locked)
+                Console.WriteLine("Being used by process with Id#: {0}", processId);
+            else
+                Console.WriteLine("Not being used.");
+        }
 
     public void lockRes(int ownerId)
     {
